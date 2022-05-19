@@ -6,35 +6,51 @@ const int MAX_NUMERO_PROCESSOS = 5;
 const int MIN_NUMERO_PROCESSOS = 3;
 const int MAX_TEMPO_EXECUCAO = 30;
 const int MIN_TEMPO_EXECUCAO = 1;
-const int MAX_OPERACOES_IO = 3;
+const int MAX_OPERACOES_IO = 5;
 const int MIN_OPERACOES_IO = 0;
 const char SIMBOLO_DISCO = 'D';
 const char SIMBOLO_FITA = 'F';
 const char SIMBOLO_IMPRESSORA = 'I';
 const char DISPOSITIVOS_IO[] = {SIMBOLO_DISCO, SIMBOLO_FITA, SIMBOLO_IMPRESSORA};
+int numberInArray(int *vetor, int elemento, int tamanhoVetor)
+{
+    for (size_t i = 0; i < tamanhoVetor; i++)
+    {
+        if (vetor[i] == elemento)
+        {
+            return 1;
+        }
+    }
+    return 0;
+}
 int setNumeroProcesso()
 {
-    
+
     return (rand() % (MAX_NUMERO_PROCESSOS - MIN_NUMERO_PROCESSOS + 1)) + MIN_NUMERO_PROCESSOS;
 }
 int setTempoExecucao()
 {
-    
+
     return (rand() % MAX_TEMPO_EXECUCAO) + MIN_TEMPO_EXECUCAO;
 }
-int setNumeroIO()
+int setNumeroIO(int tempoExecucao)
 {
-    
-    return (rand() % MAX_NUMERO_PROCESSOS - MIN_OPERACOES_IO + 1) + MIN_OPERACOES_IO;
+
+    return (rand() % (MAX_OPERACOES_IO + 1)) + MIN_OPERACOES_IO;
 }
-char *setIntantesIO(int TempoExecucao, int numeroIO)
+int *setIntantesIO(int TempoExecucao, int numeroIO)
 {
-    char *InstantesIO;
-    
-    InstantesIO = malloc(numeroIO * sizeof(char));
+    int *InstantesIO, instante;
+    InstantesIO = malloc(numeroIO * sizeof(int));
     for (size_t i = 0; i < numeroIO; i++)
     {
-        InstantesIO[i] = (char)(((rand() % (TempoExecucao - 1)) + 1) + 48);
+        instante = (rand() % (TempoExecucao - 1)) + 1;
+        if (numberInArray(InstantesIO, instante, numeroIO))
+        {
+            i--;
+            continue;
+        }
+        InstantesIO[i] = instante;
     }
 
     return InstantesIO;
@@ -50,9 +66,36 @@ char *setIO(int numeroIO)
     }
     return operacoesIO;
 }
-void printCharArrayOnFile(char *array, FILE *arquivo,int tamanhoVetor)
+void printIntArrayOnFile(int *array, FILE *arquivo, int tamanhoVetor)
 {
-    
+    if (tamanhoVetor == 0)
+    {
+        fprintf(arquivo, "[]");
+        return;
+    }
+
+    fprintf(arquivo, "[");
+    for (size_t i = 0; i < tamanhoVetor; i++)
+    {
+
+        if (!(i == tamanhoVetor - 1))
+        {
+            fprintf(arquivo, "%d,", array[i]);
+        }
+        else
+        {
+            fprintf(arquivo, "%d]", array[i]);
+        }
+    }
+}
+void printCharArrayOnFile(char *array, FILE *arquivo, int tamanhoVetor)
+{
+    if (tamanhoVetor == 0)
+    {
+        fprintf(arquivo, "[]");
+        return;
+    }
+
     fprintf(arquivo, "[");
     for (size_t i = 0; i < tamanhoVetor; i++)
     {
@@ -79,9 +122,9 @@ int main(int argc, char const *argv[])
 
         fprintf(tabela, "%d", i + 1);
         fprintf(tabela, " %d ", tempoExecucao = setTempoExecucao());
-        printCharArrayOnFile(setIO(numeroIO = setNumeroIO()), tabela,numeroIO);
+        printCharArrayOnFile(setIO(numeroIO = setNumeroIO(tempoExecucao)), tabela, numeroIO);
         fprintf(tabela, " ");
-        printCharArrayOnFile(setIntantesIO(tempoExecucao, numeroIO), tabela,numeroIO);
+        printIntArrayOnFile(setIntantesIO(tempoExecucao, numeroIO), tabela, numeroIO);
         fprintf(tabela, "\n");
     }
     fclose(tabela);
