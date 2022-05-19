@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+const int MAX_TEMPO_CHEGADA = 15;
 const int MAX_NUMERO_PROCESSOS = 5;
 const int MIN_NUMERO_PROCESSOS = 3;
 const int MAX_TEMPO_EXECUCAO = 30;
@@ -125,6 +126,7 @@ int main(int argc, char const *argv[])
         printCharArrayOnFile(setIO(numeroIO = setNumeroIO(tempoExecucao)), tabela, numeroIO);
         fprintf(tabela, " ");
         printIntArrayOnFile(setIntantesIO(tempoExecucao, numeroIO), tabela, numeroIO);
+        fprintf(tabela, " %d", rand() % MAX_TEMPO_CHEGADA);
         fprintf(tabela, "\n");
     }
     fclose(tabela);
