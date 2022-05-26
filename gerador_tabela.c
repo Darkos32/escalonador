@@ -9,10 +9,10 @@ const int MAX_TEMPO_EXECUCAO = 30;
 const int MIN_TEMPO_EXECUCAO = 1;
 const int MAX_OPERACOES_IO = 5;
 const int MIN_OPERACOES_IO = 0;
-const char SIMBOLO_DISCO = 'D';
-const char SIMBOLO_FITA = 'F';
-const char SIMBOLO_IMPRESSORA = 'I';
-const char DISPOSITIVOS_IO[] = {SIMBOLO_DISCO, SIMBOLO_FITA, SIMBOLO_IMPRESSORA};
+#define SIMBOLO_DISCO 'D'
+#define SIMBOLO_FITA 'F'
+#define SIMBOLO_IMPRESSORA  'I'
+char DISPOSITIVOS_IO[] = {SIMBOLO_DISCO, SIMBOLO_FITA, SIMBOLO_IMPRESSORA};
 int numberInArray(int *vetor, int elemento, int tamanhoVetor)
 {
     for (size_t i = 0; i < tamanhoVetor; i++)
@@ -31,12 +31,10 @@ int setNumeroProcesso()
 }
 int setTempoExecucao()
 {
-
     return (rand() % MAX_TEMPO_EXECUCAO) + MIN_TEMPO_EXECUCAO;
 }
 int setNumeroIO(int tempoExecucao)
 {
-
     return (rand() % (MAX_OPERACOES_IO + 1)) + MIN_OPERACOES_IO;
 }
 int *setIntantesIO(int TempoExecucao, int numeroIO)
@@ -118,12 +116,15 @@ int main(int argc, char const *argv[])
     srand(time(NULL));
     tabela = fopen("tabela.txt", "w");
     numeroProcessos = setNumeroProcesso();
+    fprintf(tabela,"%d\n",numeroProcessos);
     for (size_t i = 0; i < numeroProcessos; i++)
     {
 
         fprintf(tabela, "%d", i + 1);
         fprintf(tabela, " %d ", tempoExecucao = setTempoExecucao());
-        printCharArrayOnFile(setIO(numeroIO = setNumeroIO(tempoExecucao)), tabela, numeroIO);
+        numeroIO = setNumeroIO(tempoExecucao);
+        fprintf(tabela,"%d ",numeroIO);
+        printCharArrayOnFile(setIO(numeroIO), tabela, numeroIO);
         fprintf(tabela, " ");
         printIntArrayOnFile(setIntantesIO(tempoExecucao, numeroIO), tabela, numeroIO);
         fprintf(tabela, " %d", rand() % MAX_TEMPO_CHEGADA);
