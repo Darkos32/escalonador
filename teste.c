@@ -1,23 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-typedef struct teste1
-{
-    int t;
-    struct teste1  *next;
-} teste;
-
-void t2(teste* elemento){
-    teste *temp = (teste *)malloc(sizeof(teste));
-    elemento->next =(teste *) temp;
-    temp->t = 15;
-}
+#include <string.h>
 int main(int argc, char const *argv[])
 {
-    teste* c = (teste *)malloc(sizeof(teste));
-    t2(c);
-    t2(c->next);
-    printf("%d", c->next->t);
-    printf("%d", c->next->next->t);
+    char *t;
+    t = malloc(2 * sizeof(char));
+    t[0] = '1';
+    t[1] = '0';
+    printf("%d", atoi(t));
     return 0;
 }
