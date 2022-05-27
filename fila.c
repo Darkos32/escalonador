@@ -1,11 +1,11 @@
 #include <stdlib.h>
 
 // Tipo dos elementos guardados na fila.
-typedef short TYPE;
+typedef short processo;
 
 typedef struct Fila
 {
-    TYPE *array;
+    processo *array;
     int primeiro, ultimo;
     unsigned tamanho, maxTamanho;
 } Fila;
@@ -20,16 +20,16 @@ int fila_cheia(Fila *fila);
 int fila_vazia(Fila *fila);
 
 // Retorna o primeiro elemento da fila.
-TYPE fila_get(Fila *fila);
+processo fila_get(Fila *fila);
 
 // Coloca um elemento no final da fila.
-void fila_add(Fila *fila, TYPE item);
+void fila_add(Fila *fila, processo item);
 
 // Tira o elemento do início da fila e o retorna.
-TYPE fila_pop(Fila *fila);
+processo fila_pop(Fila *fila);
 
 // Executa uma função para cada valor na fila.
-void fila_foreach(Fila *fila, void (*fun)(TYPE));
+void fila_foreach(Fila *fila, void (*fun)(processo));
 
 Fila *criar_fila(unsigned maxTamanho)
 {
@@ -39,7 +39,7 @@ Fila *criar_fila(unsigned maxTamanho)
     fila->ultimo = maxTamanho - 1; // inicializando assim, se tornará 0 na primeira chamada de "add".
     fila->maxTamanho = maxTamanho;
 
-    fila->array = (TYPE *)malloc(maxTamanho * sizeof(TYPE));
+    fila->array = (processo *)malloc(maxTamanho * sizeof(processo));
     return fila;
 }
 
@@ -53,12 +53,12 @@ int fila_vazia(Fila *fila)
     return !(fila->tamanho);
 }
 
-TYPE fila_get(Fila *fila)
+processo fila_get(Fila *fila)
 {
     return fila->array[fila->primeiro];
 }
 
-void fila_add(Fila *fila, TYPE item)
+void fila_add(Fila *fila, processo item)
 {
     if (!fila_cheia(fila))
     {
@@ -68,15 +68,15 @@ void fila_add(Fila *fila, TYPE item)
     }
 }
 
-TYPE fila_pop(Fila *fila)
+processo fila_pop(Fila *fila)
 {
-    TYPE item = fila_get(fila);
+    processo item = fila_get(fila);
     fila->primeiro = (fila->primeiro + 1) % fila->maxTamanho;
     fila->tamanho--;
     return item;
 }
 
-void fila_foreach(Fila *fila, void (*fun)(TYPE))
+void fila_foreach(Fila *fila, void (*fun)(processo))
 {
     if (fila->tamanho > 0)
     {
