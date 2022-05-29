@@ -156,6 +156,24 @@ int *parseInstantesIO(char *instantesString, int numeroIO)
     return instantesInt;
 }
 
+char* parseOperacoesIO(char *token,int numeroIO){
+    int i = 0, j = 0;
+    char *operacoesIO;
+    operacoesIO = (char *)malloc((numeroIO + 1) * sizeof(char));
+    while (j<numeroIO)
+    {
+        if (token[i] == '[' || token[i]==',' || token[i]==']')
+        {
+            i++;
+            continue;
+        }
+        operacoesIO[j] = token[i];
+        j++;
+        i++;
+    }
+    operacoesIO[numeroIO] = '\0';
+    return operacoesIO;
+}
 // Inicializa os atributos de um processo
 processo *setProcesso(char *linhaTabela)
 {
@@ -180,7 +198,7 @@ processo *setProcesso(char *linhaTabela)
             p->numeroIO = atoi(token);
             break;
         case 3:
-            p->operacoesIO = token;
+            p->operacoesIO = parseOperacoesIO(token,p->numeroIO);
             break;
         case 4:
             p->instantesIO = parseInstantesIO(linhaTabela, p->numeroIO);
@@ -258,10 +276,10 @@ processo **parseTabela(int *numeroProcessos)
 // Representa a chegada de um processo ao escalonador
 void buscaEspera(processo **areaEspera, Fila *altaPrioridade, int tempoAtual, int *proxEspera, int numeroProcessos)
 {
-    
+
     if (*proxEspera < numeroProcessos)
     {
-       
+
         while (1)
         {
 
@@ -272,7 +290,10 @@ void buscaEspera(processo **areaEspera, Fila *altaPrioridade, int tempoAtual, in
                 fprintf(log, "Processo %d chegou na fila de alta prioridade\n", primeiroEspera->pid);
                 fila_add(altaPrioridade, primeiroEspera);
                 (*proxEspera)++;
-                continue;
+                if (*proxEspera < numeroProcessos)
+                {
+                    continue;
+                }
             }
             break;
         }
@@ -314,12 +335,12 @@ processo *proximoEscalonamento(Fila *altaPrioridade, Fila *baixaPrioridade)
     if (!fila_vazia(altaPrioridade))
     {
 
-        fprintf(log, "Processo %d foi escalonado da fila de alta prioridade", fila_get(altaPrioridade)->pid);
+        fprintf(log, "Processo %d foi escalonado da fila de alta prioridade\n", fila_get(altaPrioridade)->pid);
         return fila_pop(altaPrioridade);
     }
     else if (!fila_vazia(baixaPrioridade))
     {
-        fprintf(log, "Processo %d foi escalonado da fila de baixa prioridade", fila_get(baixaPrioridade)->pid);
+        fprintf(log, "Processo %d foi escalonado da fila de baixa prioridade\n", fila_get(baixaPrioridade)->pid);
         return fila_pop(baixaPrioridade);
     }
     return NULL;
@@ -333,8 +354,8 @@ int isTerminado(processo *cpu, int *processosFinalizados)
     if (isTerminado)
     {
 
-        *processosFinalizados++;
-        fprintf(log, "Processo %d terminou sua execução", cpu->pid);
+        (*processosFinalizados)++;
+        fprintf(log, "Processo %d terminou sua execução\n", cpu->pid);
         return 1;
     }
     return 0;
@@ -384,27 +405,28 @@ int fezIO(processo *cpu, Fila *discoFila, Fila *fitaFila, Fila *impressoraFila, 
     return 0;
 }
 
-int sofreuTimeOut(processo *cpu)
+int sofreuTimeOut(processo *cpu,Fila* baixaPrioridade)
 {
-    int sofreTimeout = cpu->tempoCPU == QUANTUN ? 1 : 0;
+    int sofreTimeout = !(cpu->tempoCPU % QUANTUN);
     if (sofreTimeout)
     {
-        fprintf(log, "Processo %d sofreu timeout", cpu->pid);
+        fprintf(log, "Processo %d sofreu timeout\n", cpu->pid);
+        fila_add(baixaPrioridade, cpu);
     }
-
+    
     return sofreTimeout;
 }
 
 // Gerencia o uso da CPU
-int verificaCPU(processo *cpu, Fila *altaPrioridade, Fila *baixaPrioridade, Fila *discoFIla, Fila *fitaFila, Fila *impressoraFila, int tempoAtual, int *processoFinalizados)
+processo* verificaCPU(processo *cpu, Fila *altaPrioridade, Fila *baixaPrioridade, Fila *discoFIla, Fila *fitaFila, Fila *impressoraFila, int tempoAtual, int *processoFinalizados)
 {
-    if (cpu == NULL || isTerminado(cpu, processoFinalizados) || sofreuTimeOut(cpu) || fezIO(cpu, discoFIla, fitaFila, impressoraFila, tempoAtual))
+    if (cpu == NULL || isTerminado(cpu, processoFinalizados) || sofreuTimeOut(cpu,baixaPrioridade) || fezIO(cpu, discoFIla, fitaFila, impressoraFila, tempoAtual))
     {
         // printf("%d",cpu==NULL);
         cpu = proximoEscalonamento(altaPrioridade, baixaPrioridade);
-        return cpu != NULL ? 1 : 0;
+       
     }
-    return 1;
+    return cpu;
 }
 void escalonador()
 {
@@ -413,16 +435,16 @@ void escalonador()
     Fila *altaPrioridade, *baixaPrioridade, *discoFila, *impressoraFila, *fitaFila, **filas; // filas existentes no sistema
     log = fopen("log.txt", "w");
     cpu = NULL;
-    
+
     areaEspera = parseTabela(&numeroProcessos);
-    
+
     // Criação das filas
     altaPrioridade = criar_fila(numeroProcessos);
     baixaPrioridade = criar_fila(numeroProcessos);
     discoFila = criar_fila(numeroProcessos);
     impressoraFila = criar_fila(numeroProcessos);
     fitaFila = criar_fila(numeroProcessos);
-    
+
     do
     {
         fprintf(log, "Instante %d:\n", tempoAtual);
@@ -433,7 +455,7 @@ void escalonador()
         // Chegada de processos voltando do IO
         buscaIOAll(discoFila, fitaFila, impressoraFila, altaPrioridade, baixaPrioridade, tempoAtual);
         // Gerenciamento da CPU
-        verificaCPU(cpu, altaPrioridade, baixaPrioridade, discoFila, fitaFila, impressoraFila, tempoAtual, &processosFinalizados);
+        cpu =  verificaCPU(cpu, altaPrioridade, baixaPrioridade, discoFila, fitaFila, impressoraFila, tempoAtual, &processosFinalizados);
         tempoAtual++;
     } while (processosFinalizados < numeroProcessos);
 
