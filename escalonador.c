@@ -50,8 +50,7 @@ void fila_add(Fila *fila, processo *item);
 // Tira o elemento do início da fila e o retorna.
 processo *fila_pop(Fila *fila);
 
-// Executa uma função para cada valor na fila.
-void fila_foreach(Fila *fila, void (*fun)(processo *));
+
 
 Fila *criar_fila(unsigned maxTamanho)
 {
@@ -98,25 +97,6 @@ processo *fila_pop(Fila *fila)
     return item;
 }
 
-void fila_foreach(Fila *fila, void (*fun)(processo *))
-{
-    if (fila->tamanho > 0)
-    {
-        if (fila->primeiro > fila->ultimo)
-        {
-            for (int i = fila->primeiro; i < fila->maxTamanho; i++)
-                (*fun)(fila->array[i]);
-
-            for (int i = 0; i <= fila->ultimo; i++)
-                (*fun)(fila->array[i]);
-        }
-        else
-        {
-            for (int i = fila->primeiro; i <= fila->ultimo; i++)
-                (*fun)(fila->array[i]);
-        }
-    }
-}
 
 int *parseInstantesIO(char *instantesString, int numeroIO)
 {
