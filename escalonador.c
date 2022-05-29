@@ -156,13 +156,14 @@ int *parseInstantesIO(char *instantesString, int numeroIO)
     return instantesInt;
 }
 
-char* parseOperacoesIO(char *token,int numeroIO){
+char *parseOperacoesIO(char *token, int numeroIO)
+{
     int i = 0, j = 0;
     char *operacoesIO;
     operacoesIO = (char *)malloc((numeroIO + 1) * sizeof(char));
-    while (j<numeroIO)
+    while (j < numeroIO)
     {
-        if (token[i] == '[' || token[i]==',' || token[i]==']')
+        if (token[i] == '[' || token[i] == ',' || token[i] == ']')
         {
             i++;
             continue;
@@ -198,7 +199,7 @@ processo *setProcesso(char *linhaTabela)
             p->numeroIO = atoi(token);
             break;
         case 3:
-            p->operacoesIO = parseOperacoesIO(token,p->numeroIO);
+            p->operacoesIO = parseOperacoesIO(token, p->numeroIO);
             break;
         case 4:
             p->instantesIO = parseInstantesIO(linhaTabela, p->numeroIO);
@@ -366,46 +367,48 @@ void executarOperacaoIO(processo *cpu, int tempoAtual, int tempoOperacao, Fila *
 {
     cpu->tempoVoltaIO = tempoAtual + tempoOperacao;
     fila_add(filaIO, cpu);
-    fprintf(log, "Processo %d saiu para fazer IO ate o instante %d", cpu->pid, cpu->tempoVoltaIO);
+    fprintf(log, "Processo %d saiu para fazer IO ate o instante %d\n", cpu->pid, cpu->tempoVoltaIO);
 }
 
 // Trata o pedido de IO de um processo
 void handleIO(processo *cpu, int tempoAtual, Fila *discoFila, Fila *fitaFila, Fila *impressoraFila)
 {
-    int ioAgora = cpu->tempoCPU == cpu->instantesIO[cpu->proxOperacaoIO];
-    if (ioAgora)
+
+    char tipoOperacao = cpu->operacoesIO[cpu->proxOperacaoIO];
+    switch (tipoOperacao)
     {
-        char tipoOperacao = cpu->operacoesIO[cpu->proxOperacaoIO];
-        switch (tipoOperacao)
-        {
-        case SIMBOLO_DISCO:
-            executarOperacaoIO(cpu, tempoAtual, TEMPO_DISCO, discoFila);
-            break;
-        case SIMBOLO_FITA:
-            executarOperacaoIO(cpu, tempoAtual, TEMPO_FITA, fitaFila);
-            break;
-        case SIMBOLO_IMPRESSORA:
-            executarOperacaoIO(cpu, tempoAtual, TEMPO_IMPRESSORA, impressoraFila);
-            break;
-        default:
-            printf("ERRO: OPERAÇÃO DESCONHECIDA");
-            break;
-        }
+    case SIMBOLO_DISCO:
+        executarOperacaoIO(cpu, tempoAtual, TEMPO_DISCO, discoFila);
+        break;
+    case SIMBOLO_FITA:
+        executarOperacaoIO(cpu, tempoAtual, TEMPO_FITA, fitaFila);
+        break;
+    case SIMBOLO_IMPRESSORA:
+        executarOperacaoIO(cpu, tempoAtual, TEMPO_IMPRESSORA, impressoraFila);
+        break;
+    default:
+        printf("ERRO: OPERAÇÃO DESCONHECIDA");
+        break;
     }
 }
 // Verifica se eu processo faz IO nesse instante
 int fezIO(processo *cpu, Fila *discoFila, Fila *fitaFila, Fila *impressoraFila, int tempoAtual)
 {
-    int fazIO = cpu->numeroIO > cpu->proxOperacaoIO ? 1 : 0;
-    if (fazIO)
+    int podeFazerIO = cpu->numeroIO > cpu->proxOperacaoIO ? 1 : 0;
+
+    if (podeFazerIO)
     {
-        handleIO(cpu, tempoAtual, discoFila, fitaFila, impressoraFila);
-        return 1;
+        int fazIOAgora = cpu->tempoCPU == cpu->instantesIO[cpu->proxOperacaoIO];
+        if (fazIOAgora)
+        {
+            handleIO(cpu, tempoAtual, discoFila, fitaFila, impressoraFila);
+            return 1;
+        }
     }
     return 0;
 }
 
-int sofreuTimeOut(processo *cpu,Fila* baixaPrioridade)
+int sofreuTimeOut(processo *cpu, Fila *baixaPrioridade)
 {
     int sofreTimeout = !(cpu->tempoCPU % QUANTUN);
     if (sofreTimeout)
@@ -413,18 +416,17 @@ int sofreuTimeOut(processo *cpu,Fila* baixaPrioridade)
         fprintf(log, "Processo %d sofreu timeout\n", cpu->pid);
         fila_add(baixaPrioridade, cpu);
     }
-    
+
     return sofreTimeout;
 }
 
 // Gerencia o uso da CPU
-processo* verificaCPU(processo *cpu, Fila *altaPrioridade, Fila *baixaPrioridade, Fila *discoFIla, Fila *fitaFila, Fila *impressoraFila, int tempoAtual, int *processoFinalizados)
+processo *verificaCPU(processo *cpu, Fila *altaPrioridade, Fila *baixaPrioridade, Fila *discoFIla, Fila *fitaFila, Fila *impressoraFila, int tempoAtual, int *processoFinalizados)
 {
-    if (cpu == NULL || isTerminado(cpu, processoFinalizados) || sofreuTimeOut(cpu,baixaPrioridade) || fezIO(cpu, discoFIla, fitaFila, impressoraFila, tempoAtual))
+    if (cpu == NULL || isTerminado(cpu, processoFinalizados) || sofreuTimeOut(cpu, baixaPrioridade) || fezIO(cpu, discoFIla, fitaFila, impressoraFila, tempoAtual))
     {
         // printf("%d",cpu==NULL);
         cpu = proximoEscalonamento(altaPrioridade, baixaPrioridade);
-       
     }
     return cpu;
 }
@@ -455,7 +457,7 @@ void escalonador()
         // Chegada de processos voltando do IO
         buscaIOAll(discoFila, fitaFila, impressoraFila, altaPrioridade, baixaPrioridade, tempoAtual);
         // Gerenciamento da CPU
-        cpu =  verificaCPU(cpu, altaPrioridade, baixaPrioridade, discoFila, fitaFila, impressoraFila, tempoAtual, &processosFinalizados);
+        cpu = verificaCPU(cpu, altaPrioridade, baixaPrioridade, discoFila, fitaFila, impressoraFila, tempoAtual, &processosFinalizados);
         tempoAtual++;
     } while (processosFinalizados < numeroProcessos);
 
