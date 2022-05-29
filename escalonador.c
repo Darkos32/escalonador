@@ -367,7 +367,7 @@ void executarOperacaoIO(processo *cpu, int tempoAtual, int tempoOperacao, Fila *
 {
     cpu->tempoVoltaIO = tempoAtual + tempoOperacao;
     fila_add(filaIO, cpu);
-    fprintf(log, "Processo %d saiu para fazer IO ate o instante %d\n", cpu->pid, cpu->tempoVoltaIO);
+    fprintf(log, " ate o instante %d\n",cpu->tempoVoltaIO);
 }
 
 // Trata o pedido de IO de um processo
@@ -378,12 +378,15 @@ void handleIO(processo *cpu, int tempoAtual, Fila *discoFila, Fila *fitaFila, Fi
     switch (tipoOperacao)
     {
     case SIMBOLO_DISCO:
+        fprintf(log, "Processo %d saiu para fazer uma operacao de disco", cpu->pid);
         executarOperacaoIO(cpu, tempoAtual, TEMPO_DISCO, discoFila);
         break;
     case SIMBOLO_FITA:
+        fprintf(log, "Processo %d saiu para fazer uma operacao de fita", cpu->pid);
         executarOperacaoIO(cpu, tempoAtual, TEMPO_FITA, fitaFila);
         break;
     case SIMBOLO_IMPRESSORA:
+        fprintf(log, "Processo %d saiu para fazer uma operacao de impressora", cpu->pid);
         executarOperacaoIO(cpu, tempoAtual, TEMPO_IMPRESSORA, impressoraFila);
         break;
     default:
